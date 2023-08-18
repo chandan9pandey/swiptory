@@ -10,6 +10,23 @@ dotenv.config();
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+
+const Story = require("./models/story");
+const Image = require("./models/image");
+const User = require("./models/user");
+
+app.get("/", (req, res) => {
+	res.json({
+		Message: "Welcome in the SwipTory Server",
+	});
+});
+
+app.get("/health", (req, res) => {
+	res.json({
+		Message: "Everything is working fine",
+	});
+});
 
 app.listen(process.env.PORT, () => {
 	mongoose
