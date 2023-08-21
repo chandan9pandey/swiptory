@@ -112,6 +112,101 @@ app.post("/login", async (req, res) => {
 	}
 });
 
+app.post("/story", isAuthenticated, async (req, res) => {
+	const storyID = req.body.id;
+	const found = await Story.find({ storyID });
+	const { heading, description, imageURL, category, createdByUser } = req.body;
+	if (!heading || !description || !imageURL || !category || !createdByUser) {
+		return res.json({ error: "Please fill in all details!" });
+	}
+	if (found[0] == undefined) {
+		try {
+			await Story.create({
+				storyID,
+				heading,
+				description,
+				imageURL,
+				category,
+				createdByUser,
+			});
+			return res.json({
+				status: "SUCCESS",
+				message: "Story uploaded successfully",
+				iteration: 0,
+				storyID: storyID,
+			});
+		} catch (error) {
+			return res.send(error);
+		}
+	}
+	if (found) {
+		try {
+			const iteration = found[found.length - 1].iteration;
+			if (iteration >= 6) {
+				return res.send({
+					message: "Maximum 6 slides are allowed in a story.",
+				});
+			}
+			await Story.create({
+				storyID,
+				heading,
+				description,
+				imageURL,
+				category,
+				iteration: iteration + 1,
+				createdByUser,
+			});
+			return res.json({
+				storyID: storyID,
+				status: "SUCCESS",
+				message: "Story uploaded successfully",
+				iteration: iteration + 1,
+			});
+		} catch (error) {
+			return res.send(error);
+		}
+	}
+});
+
+app.delete("/story/:id", isAuthenticated, async (req, res) => {
+	try {
+		const deletedStory = await Story.findByIdAndDelete(req.params.id);
+		res.json({
+			status: "SUCCESS",
+			message: "Story deleted successfully",
+			deletedStory,
+		});
+	} catch (error) {
+		res.json({
+			status: "FAIL",
+			message: "Story couldn't be deleted",
+			error: error,
+		});
+	}
+});
+
+app.get("/story/:storyID", async (req, res) => {
+	try {
+		const storyID = req.params.storyID;
+		const category = req.query.category;
+		if (category) {
+			const found = await Story.find({ category }).sort({ _id: -1 });
+			return res.json(found);
+		}
+		if (storyID == "all") {
+			const found = await Story.find({ storyID }).sort({ _id: -1 });
+			return res.json(found);
+		}
+		const found = await Story.find().sort({ _id: -1 });
+		return res.json(found);
+	} catch (error) {
+		return res.json({
+			status: "FAIL",
+			error: "Backend Error",
+		});
+	}
+});
+
 app.listen(process.env.PORT, () => {
 	mongoose
 		.connect(process.env.DB_URL, {
