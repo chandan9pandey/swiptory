@@ -297,6 +297,88 @@ app.get("/user/bookmarks/:username", isAuthenticated, async (req, res) => {
 	}
 });
 
+app.post("/like", isAuthenticated, async (req, res) => {
+	try {
+		const user = req.body.username;
+		const storyID = req.body.storyID;
+		const iteration = req.body.iteration;
+		const userArray = [user];
+		if (!user || !storyID || !iteration) {
+			return res.json({
+				error: "Please check username or storyID or iteration.",
+			});
+		}
+		const check = await Story.findOne({
+			storyID,
+			iteration,
+			likes: { $in: userArray },
+		});
+		if (check) {
+			return res.json({ error: "This story is already liked" });
+		}
+		const found = await Story.findOneAndUpdate(
+			{ storyID, iteration: iteration },
+			{ $push: { likes: user } },
+			{ new: true }
+		);
+		return res.json(found.likes);
+	} catch (error) {
+		return res.json({ error: error });
+	}
+});
+
+app.put("/like", isAuthenticated, async (req, res) => {
+	try {
+		const user = req.body.username;
+		const storyID = req.body.storyID;
+		const iteration = req.body.iteration;
+		const userArray = [user];
+		const check = await Story.findOne({
+			storyID,
+			iteration,
+			likes: { $in: userArray },
+		});
+		if (check) {
+			const response = await Story.findOneAndUpdate(
+				{ storyID, iteration: iteration },
+				{ $pull: { likes: user } },
+				{ new: true }
+			);
+			if (response) {
+				return res.json(response);
+			}
+		}
+		return res.send("story not found");
+	} catch (error) {
+		res.json({ error: error });
+	}
+});
+
+app.get("/like/:storyID", isAuthenticated, async (req, res) => {
+	try {
+		const storyID = req.params.storyID;
+		const iteration = req.query.iteration;
+		const username = req.query.username;
+		const user = [username];
+		if (!storyID || !iteration || !username) {
+			res.json({ error: "Please check storyID or iteration once again" });
+		}
+		const check = await Story.findOne({
+			storyID,
+			iteration,
+			likes: { $in: user },
+		});
+		if (check) {
+			return res.json({ userLiked: true, likes: check.likes });
+		}
+		let likes = await Story.findOne({ storyID, iteration });
+		if (likes) likes = likes.likes;
+		return res.json({ userLiked: false, likes: likes });
+	} catch (error) {
+		res.json({ error: error });
+	}
+});
+
 app.listen(process.env.PORT, () => {
 	mongoose
 		.connect(process.env.DB_URL, {
