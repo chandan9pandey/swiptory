@@ -15,6 +15,7 @@ app.use(express.json());
 const Story = require("./models/story");
 const Image = require("./models/image");
 const User = require("./models/user");
+const story = require("./models/story");
 
 app.get("/", (req, res) => {
 	res.json({
@@ -204,6 +205,95 @@ app.get("/story/:storyID", async (req, res) => {
 			status: "FAIL",
 			error: "Backend Error",
 		});
+	}
+});
+
+app.post("/bookmark", isAuthenticated, async (req, res) => {
+	try {
+		const user = req.body.username;
+		const storyID = req.body.storyID;
+		const check = await User.findOne({ username: user });
+		if (check.bookmarks.includes(storyID)) {
+			return res.json({
+				error: "This story is already bookmarked.",
+			});
+		}
+		const found = await User.findOneAndUpdate(
+			{ username: user },
+			{ $push: { bookmarks: storyID } },
+			{ new: true }
+		);
+		return res.json({
+			status: "SUCCESS",
+			message: "Bookmark added",
+			found: found,
+		});
+	} catch (error) {
+		res.json({ error: "Something went wrong with story.", error: error });
+	}
+});
+
+app.get("/bookmark/:username", isAuthenticated, async (req, res) => {
+	try {
+		const user = req.params.username;
+		const storyID = req.query.storyID;
+		const storyIDArray = [storyID];
+		const check = await User.findOne({
+			username: user,
+			bookmarks: { $in: storyIDArray },
+		});
+		if (check) {
+			return res.json({ status: "SUCCESS", message: "Bookmarks fetched" });
+		} else {
+			return res.json({ status: "FAIL", message: "Bookmarks not found" });
+		}
+	} catch (error) {
+		res.json({
+			error: error,
+		});
+	}
+});
+
+app.put("/bookmark", isAuthenticated, async (req, res) => {
+	try {
+		const user = req.body.username;
+		const storyID = req.body.storyID;
+		const check = await User.findOne({
+			username: user,
+			bookmarks: { $in: storyID },
+		});
+		if (check) {
+			const found = await User.findOneAndUpdate(
+				{ username: user },
+				{ $pull: { bookmarks: storyID } },
+				{ new: true }
+			);
+		}
+		return res.json({
+			status: "SUCCESS",
+			message: "Bookmark removed",
+			found: found,
+		});
+	} catch (error) {
+		res.json({ message: "Check user or storyID once.", error: error });
+	}
+});
+
+app.get("/user/bookmarks/:username", isAuthenticated, async (req, res) => {
+	try {
+		const username = req.params.username;
+		const response = await User.findOne({ username });
+		if (response) {
+			let userBookmarks = response.bookmarks;
+			userBookmarks = userBookmarks.filter(
+				(item, index) => userBookmarks.indexOf(item) === index
+			);
+			return res.json(userBookmarks);
+		} else {
+			return res.json({ error: "Check user once. User not found !" });
+		}
+	} catch (error) {
+		res.json({ message: "Check user once.", error: error });
 	}
 });
 
