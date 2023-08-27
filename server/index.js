@@ -6,11 +6,15 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 dotenv.config();
 
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const Story = require("./models/story");
 const Image = require("./models/image");
@@ -77,6 +81,10 @@ const isAuthenticated = async (req, res, next) => {
 	next();
 };
 
+app.post("/verify-token", isAuthenticated, (req, res) => {
+	res.send("Token Valid");
+});
+
 app.post("/login", async (req, res) => {
 	const { username, password } = req.body;
 	if (!username || !password) {
@@ -95,7 +103,7 @@ app.post("/login", async (req, res) => {
 					status: "SUCCESS",
 					message: "User Logged in Successfully",
 					token: jwtToken,
-					User: authentication,
+					user: username,
 				});
 			} catch (error) {
 				res.json({
@@ -114,7 +122,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/story", isAuthenticated, async (req, res) => {
-	const storyID = req.body.id;
+	const storyID = req.body.storyID;
 	const found = await Story.find({ storyID });
 	const { heading, description, imageURL, category, createdByUser } = req.body;
 	if (!heading || !description || !imageURL || !category || !createdByUser) {
@@ -144,8 +152,8 @@ app.post("/story", isAuthenticated, async (req, res) => {
 		try {
 			const iteration = found[found.length - 1].iteration;
 			if (iteration >= 6) {
-				return res.send({
-					message: "Maximum 6 slides are allowed in a story.",
+				return res.json({
+					Error: "Maximum 6 slides are allowed in a story.",
 				});
 			}
 			await Story.create({
@@ -160,7 +168,7 @@ app.post("/story", isAuthenticated, async (req, res) => {
 			return res.json({
 				storyID: storyID,
 				status: "SUCCESS",
-				message: "Story uploaded successfully",
+				Success: "Story uploaded successfully",
 				iteration: iteration + 1,
 			});
 		} catch (error) {
@@ -183,6 +191,50 @@ app.delete("/story/:id", isAuthenticated, async (req, res) => {
 			message: "Story couldn't be deleted",
 			error: error,
 		});
+	}
+});
+
+app.put("/story", isAuthenticated, async (req, res) => {
+	const storyID = req.body.storyID;
+	const found = await Story.find({ storyID });
+	if (found.length > 0 && found[found.length - 1].iteration == 5) {
+		try {
+			const deleted = await Story.deleteMany({ storyID });
+		} catch (e) {
+			return res.json({ Error: "Internal Error with Patch" });
+		}
+	}
+	const { heading, description, imageURL, category } = req.body;
+	if (!heading || !description || !imageURL || !category) {
+		return res.json({ error: "Incomplete Story! Please fill in all details." });
+	}
+	if (found[0] == undefined) {
+		try {
+			await Story.create({ heading, description, imageURL, category });
+			return res.json({ Success: "Story Successfully Uploaded" });
+		} catch (e) {
+			return res.json({ Error: e });
+		}
+	}
+	if (found) {
+		try {
+			const iteration = found[found.length - 1].iteration;
+			if (iteration >= 6)
+				return res.json({
+					Error: "Maximum 6 slides are allowed in a story.",
+				});
+			await Story.create({
+				storyID,
+				heading,
+				description,
+				imageURL,
+				category,
+				iteration: iteration + 1,
+			});
+			return res.json({ Success: "Story Successfully Uploaded" });
+		} catch (e) {
+			return res.json({ Error: e });
+		}
 	}
 });
 
@@ -297,6 +349,24 @@ app.get("/user/bookmarks/:username", isAuthenticated, async (req, res) => {
 	}
 });
 
+app.get("/user/story/:username", async (req, res) => {
+	try {
+		const username = req.params.username;
+		if (!username) {
+			return res.json({ error: "Please provide a valid username." });
+		}
+		const found = await Story.find({ createdByUser: username }).sort({
+			_id: -1,
+		});
+		if (!found[0]) {
+			return res.json({ error: "This user hasn't created any stories yet." });
+		}
+		return res.json(found);
+	} catch (e) {
+		console.log(e);
+	}
+});
+
 app.post("/like", isAuthenticated, async (req, res) => {
 	try {
 		const user = req.body.username;
@@ -378,6 +448,64 @@ app.get("/like/:storyID", isAuthenticated, async (req, res) => {
 		res.json({ error: error });
 	}
 });
+
+app.post("/image", upload.single("image"), async (req, res) => {
+	try {
+		const imageData = req.file.buffer;
+		const heading = req.body.heading;
+		const mimeType = req.file.mimetype;
+		if (!heading || !imageData) {
+			return res.json({ error: "Image without heading" });
+		}
+		const image = new Image({
+			image: imageData,
+			heading: heading,
+			mimeType: mimeType,
+		});
+		await image.save();
+		res.status(201).send("Image uploaded successfully!");
+	} catch (error) {
+		console.error(error);
+		res.status(500).send("An error occurred during image upload.");
+	}
+});
+
+app.get("/image/:heading", async (req, res) => {
+	try {
+		const heading = req.params.heading;
+		const image = await StoryImages.findOne({ heading });
+		if (!image) {
+			return res.status(404).send("Image not found");
+		}
+		res.set("Content-Type", image.mimeType);
+		res.send(image.image);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send("An error occurred while retrieving the image");
+	}
+});
+
+app.get(
+	"/storyid",
+	async (req, res) => {
+		try {
+			let response = await Story.find().sort({ _id: -1 }).limit(1);
+			if (!response[0]) {
+				response = {
+					storyID: 0,
+				};
+				return res.json(response);
+			}
+			response = {
+				storyID: response[0].storyID + 1,
+			};
+			res.send(response);
+		} catch (e) {
+			console.log(e);
+		}
+	},
+	[]
+);
 
 app.listen(process.env.PORT, () => {
 	mongoose
