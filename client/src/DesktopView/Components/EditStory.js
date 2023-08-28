@@ -38,7 +38,7 @@ export default function EditStory(props) {
 			item["createdByUser"] = localStorage.getItem("user");
 			try {
 				const response = await axios.delete(
-					"https://localhost:5000/story",
+					"http://localhost:5000/story",
 					{
 						headers: {
 							"content-type": "application/x-www-form-urlencoded",
@@ -183,7 +183,7 @@ export default function EditStory(props) {
 
 async function getStoryID() {
 	try {
-		let id = await axios.get("https://localhost:5000/storyid");
+		let id = await axios.get("http://localhost:5000/storyid");
 		return id.data.storyID;
 	} catch (e) {
 		console.log(e);

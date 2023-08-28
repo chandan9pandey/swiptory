@@ -6,6 +6,7 @@ import Edit from "../Assets/Edit.png";
 import ReactModal from "react-modal";
 import EditStory from "./EditStory";
 import InfinitySlide from "./InfinitySlide";
+import Form from "./Form";
 
 export default function StoriesSection(props) {
 	const [stories, setStories] = useState([]);
@@ -14,6 +15,7 @@ export default function StoriesSection(props) {
 	const [editStory, setEditStory] = useState(false);
 	const [editStoryID, setEditStoryID] = useState("");
 	const [infinitySlide, setInfinitySlide] = useState(false);
+	const [toLogIn, setToLogIn] = useState(false);
 	const { isLoggedIn } = useContext(AppContext);
 	useEffect(() => {
 		(async () =>
@@ -71,7 +73,19 @@ export default function StoriesSection(props) {
 				onRequestClose={() => setInfinitySlide(false)}
 				className={"infinitySlide"}
 			>
-				<InfinitySlide storyID={editStoryID} />
+				<InfinitySlide
+					storyID={editStoryID}
+					setClose={setInfinitySlide}
+					setToLogIn={setToLogIn}
+				/>
+			</ReactModal>
+			<ReactModal>
+				isOpen={toLogIn}
+				onRequestClose={() => setToLogIn(false)}
+				className="modal" overlayClassName={"modalOverlay"}
+				<Form>
+					isSignUp={false} isLogIn={true} setIsLogIn={setToLogIn}{" "}
+				</Form>
 			</ReactModal>
 		</div>
 	);

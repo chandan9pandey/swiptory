@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 dotenv.config();
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -19,7 +19,6 @@ const upload = multer({ storage: storage });
 const Story = require("./models/story");
 const Image = require("./models/image");
 const User = require("./models/user");
-const story = require("./models/story");
 
 app.get("/", (req, res) => {
 	res.json({
@@ -101,7 +100,7 @@ app.post("/login", async (req, res) => {
 				res.json({
 					authentication: true,
 					status: "SUCCESS",
-					message: "User Logged in Successfully",
+					Success: "User Logged in Successfully",
 					token: jwtToken,
 					user: username,
 				});
@@ -140,12 +139,14 @@ app.post("/story", isAuthenticated, async (req, res) => {
 			});
 			return res.json({
 				status: "SUCCESS",
-				message: "Story uploaded successfully",
+				Success: "Story uploaded successfully",
 				iteration: 0,
 				storyID: storyID,
 			});
 		} catch (error) {
-			return res.send(error);
+			return res.json({
+				error: error,
+			});
 		}
 	}
 	if (found) {
@@ -172,7 +173,9 @@ app.post("/story", isAuthenticated, async (req, res) => {
 				iteration: iteration + 1,
 			});
 		} catch (error) {
-			return res.send(error);
+			return res.json({
+				error: error,
+			});
 		}
 	}
 });
@@ -182,7 +185,7 @@ app.delete("/story/:id", isAuthenticated, async (req, res) => {
 		const deletedStory = await Story.findByIdAndDelete(req.params.id);
 		res.json({
 			status: "SUCCESS",
-			message: "Story deleted successfully",
+			Success: "Story deleted successfully",
 			deletedStory,
 		});
 	} catch (error) {
@@ -247,15 +250,16 @@ app.get("/story/:storyID", async (req, res) => {
 			return res.json(found);
 		}
 		if (storyID == "all") {
-			const found = await Story.find({ storyID }).sort({ _id: -1 });
+			const found = await Story.find().sort({ _id: -1 });
 			return res.json(found);
 		}
-		const found = await Story.find().sort({ _id: -1 });
+		const found = await Story.find({ storyID }).sort({ _id: -1 });
 		return res.json(found);
 	} catch (error) {
 		return res.json({
 			status: "FAIL",
-			error: "Backend Error",
+			message: "Backend Error",
+			error: error,
 		});
 	}
 });

@@ -21,16 +21,14 @@ export default function AddStory(props) {
 		setSlides([...slides, { number: count }]);
 	}, [count]);
 	useEffect(() => {
-		setSlideData({
-			...slideData,
-			[selectedSlide]: {
-				...tempState,
-			},
-		});
+		if (tempState.slide == selectedSlide)
+			setSlideData({
+				...slideData,
+				[selectedSlide]: {
+					...tempState,
+				},
+			});
 	}, [tempState]);
-	useEffect(() => {
-		console.log(slideData);
-	}, [slideData]);
 	const handleFormSubmit = async () => {
 		const storyID = await getStoryID();
 		setStatus(["true"]);
@@ -124,7 +122,7 @@ export default function AddStory(props) {
 											></textarea>
 										</div>
 										<div>
-											<label htmlFor="imageURL">imageURL:</label>
+											<label htmlFor="imageURL">Image URL:</label>
 											<input
 												type="text"
 												name="imageURL"
@@ -145,13 +143,13 @@ export default function AddStory(props) {
 												value={slideData[selectedSlide]?.category || ""}
 											>
 												<option value="select">Select</option>
-												<option value="food">Food</option>
-												<option value="health and fitness">
+												<option value="Food">Food</option>
+												<option value="Health and Fitness">
 													Health and Fitness
 												</option>
-												<option value="travel">Travel</option>
-												<option value="movies">Movies</option>
-												<option value="education">Education</option>
+												<option value="Travel">Travel</option>
+												<option value="Movies">Movies</option>
+												<option value="Education">Education</option>
 											</select>
 										</div>
 									</form>
