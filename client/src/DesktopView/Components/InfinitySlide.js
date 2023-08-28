@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
+import { useLocation } from "react-router-dom";
 import ReactModal from "react-modal";
 import "./InfinitySlide.css";
 import axios from "axios";
@@ -20,18 +22,21 @@ export default function InfinitySlide(props) {
 	const [intervalID, setIntervalID] = useState(-1);
 	const [bookmarkChange, setBookmarkChange] = useState("");
 	const [likeChange, setLikeChange] = useState(-1);
+	const location = useLocation();
+	const notify = (message) =>
+		toast(message, {
+			duration: 2500,
+		});
 	useEffect(() => {
 		(async () => setDisplayStory(await fetchStoryByID(iteration)))();
-		isBookmarked(iteration, setBookmarkChange);
+		clearInterval(intervalID);
 	}, [iteration]);
 	useEffect(() => {
 		const interval = [];
 		if (displayStory.length > 1) {
 			const timeouts = [];
-
 			const renderItemsWithDelay = () => {
 				setCurrentSlide({});
-
 				displayStory.forEach((item, index) => {
 					const timeout = setTimeout(() => {
 						setCurrentSlide({ ...item });
@@ -51,6 +56,7 @@ export default function InfinitySlide(props) {
 					setIteration((prev) => prev + 1);
 				}, 4000);
 				interval.push(intervalID);
+				setIntervalID(intervalID);
 				return () => clearInterval(interval[0]);
 			});
 		}
@@ -63,6 +69,7 @@ export default function InfinitySlide(props) {
 				setIteration((prev) => prev + 1);
 			}, 4000);
 			interval.push(intervalID);
+			setIntervalID(intervalID);
 		}
 		return () => clearInterval(interval[0]);
 	}, [lastSlide]);
@@ -81,6 +88,7 @@ export default function InfinitySlide(props) {
 	}, [likeChange]);
 	useEffect(() => {
 		isLiked(currentSlide.storyID, currentSlide.iteration, setLikeChange);
+		isBookmarked(currentSlide.storyID, setBookmarkChange);
 	}, [currentSlide]);
 	return (
 		<div className="infinitySlides">
@@ -125,7 +133,13 @@ export default function InfinitySlide(props) {
 			</div>
 			{bookmarkChange == "Bookmarked" ? (
 				<div className="bookmark">
-					<img src={savedSlide} alt="Saved" />
+					<img
+						src={savedSlide}
+						alt="Saved"
+						onClick={() => {
+							removeBookmark(currentSlide.storyID, setBookmarkChange);
+						}}
+					/>
 				</div>
 			) : (
 				<div
@@ -167,6 +181,23 @@ export default function InfinitySlide(props) {
 					<p>{likeChange}</p>
 				</div>
 			)}
+			<div
+				className="shareSlide"
+				onClick={() => {
+					const baseURL = window.location.origin;
+					(async () =>
+						navigator.clipboard.writeText(
+							`${baseURL}/?infinitySlide=true&storyID=${currentSlide.storyID}`
+						))();
+					notify("Story link copied to the clipboard. Share it !");
+				}}
+			>
+				<img src={shareSlide} alt="share story" />
+			</div>
+			<div className="exit" onClick={() => props.setClose(false)}>
+				<img src={exitSlide} alt="cross" />
+			</div>
+			<Toaster />
 		</div>
 	);
 }
@@ -213,13 +244,9 @@ async function setBookmark(storyID, setBookmarkChange) {
 
 async function isBookmarked(storyID, setBookmarkChange) {
 	try {
-		const payload = {
-			username: localStorage.getItem("user"),
-			storyID: storyID,
-		};
-		const response = await axios.post(
-			"http://localhost:5000/bookmark",
-			payload,
+		const username = localStorage.getItem("user");
+		const response = await axios.get(
+			`http://localhost:5000/bookmark/${username}?storyID=${storyID}`,
 			{
 				headers: {
 					"content-type": "application/x-www-form-urlencoded",
@@ -227,9 +254,31 @@ async function isBookmarked(storyID, setBookmarkChange) {
 				},
 			}
 		);
-		if (response.data?.error == "Bookmark already exists. Try delete request.")
-			setBookmarkChange("Bookmarked");
+		if (response.data?.found ?? false) setBookmarkChange("Bookmarked");
 		else setBookmarkChange("");
+	} catch (e) {
+		console.log(e);
+	}
+}
+
+async function removeBookmark(storyID, setBookmarkChange) {
+	try {
+		const response = await axios.put(
+			"http://localhost:5000/bookmark",
+			{
+				username: localStorage.getItem("user"),
+				storyID: storyID,
+			},
+			{
+				headers: {
+					"content-type": "application/x-www-form-urlencoded",
+					token: localStorage.getItem("token"),
+				},
+			}
+		);
+		if (response.data?.username == localStorage.getItem("user"))
+			setBookmarkChange("");
+		else setBookmarkChange("Bookmarked");
 	} catch (e) {
 		console.log(e);
 	}
@@ -270,7 +319,6 @@ async function isLiked(storyID, iteration, setLikeChange) {
 				},
 			}
 		);
-		console.log(response);
 		if (response.data.userLiked) setLikeChange(response.data.likes.length);
 		else setLikeChange(-1);
 	} catch (e) {

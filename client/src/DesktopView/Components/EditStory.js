@@ -141,13 +141,13 @@ export default function EditStory(props) {
 												value={slideData[selectedSlide]?.category || ""}
 											>
 												<option value="select">Select</option>
-												<option value="food">Food</option>
-												<option value="health and fitness">
+												<option value="Food">Food</option>
+												<option value="Health and Fitness">
 													Health and Fitness
 												</option>
-												<option value="travel">Travel</option>
-												<option value="movies">Movies</option>
-												<option value="education">Education</option>
+												<option value="Travel">Travel</option>
+												<option value="Movies">Movies</option>
+												<option value="Education">Education</option>
 											</select>
 										</div>
 									</form>

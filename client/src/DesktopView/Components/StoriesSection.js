@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./StoriesSection.css";
 import { AppContext } from "../../AppContext";
+import { useLocation } from "react-router-dom";
+import queryString from "query-string";
 import axios from "axios";
 import Edit from "../Assets/Edit.png";
 import ReactModal from "react-modal";
@@ -17,6 +19,20 @@ export default function StoriesSection(props) {
 	const [infinitySlide, setInfinitySlide] = useState(false);
 	const [toLogIn, setToLogIn] = useState(false);
 	const { isLoggedIn } = useContext(AppContext);
+	const location = useLocation();
+
+	useEffect(() => {
+		const params = queryString.parse(window.location.search);
+		if (params.infinitySlide) {
+			params["infinitySlide"] = true;
+			setInfinitySlide(params.infinitySlide);
+		}
+		if (params.storyID) {
+			params["storyID"] = parseInt(params.storyID);
+			setEditStoryID(params.storyID);
+		}
+	}, [useLocation]);
+
 	useEffect(() => {
 		(async () =>
 			setStories(await getSelectedStories(props.selectedCategory)))();
@@ -30,7 +46,6 @@ export default function StoriesSection(props) {
 			const user = localStorage.getItem("user");
 			let stories = await axios.get(`http://localhost:5000/user/story/${user}`);
 			stories = stories.data;
-			console.log(stories);
 			setUserStories(stories);
 		})();
 	}, [isLoggedIn]);
@@ -79,12 +94,14 @@ export default function StoriesSection(props) {
 					setToLogIn={setToLogIn}
 				/>
 			</ReactModal>
-			<ReactModal>
+			<ReactModal
 				isOpen={toLogIn}
 				onRequestClose={() => setToLogIn(false)}
-				className="modal" overlayClassName={"modalOverlay"}
+				className="modal"
+				overlayClassName={"modalOverlay"}
+			>
 				<Form>
-					isSignUp={false} isLogIn={true} setIsLogIn={setToLogIn}{" "}
+					isSignUp={false} isLogIn={true} setIsLogIn={setToLogIn}
 				</Form>
 			</ReactModal>
 		</div>
