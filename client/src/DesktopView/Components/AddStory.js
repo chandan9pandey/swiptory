@@ -32,6 +32,14 @@ export default function AddStory(props) {
 	const handleFormSubmit = async () => {
 		const storyID = await getStoryID();
 		setStatus(["true"]);
+		if (Object.values(slideData).length < 3) {
+			setStatus(["minbreach"]);
+			return;
+		}
+		if (Object.keys(slideData).length === 0) {
+			setStatus(["error"]);
+			return;
+		}
 		Object.values(slideData).map(async (item, key) => {
 			item["storyID"] = storyID;
 			item["createdByUser"] = localStorage.getItem("user");
@@ -56,7 +64,6 @@ export default function AddStory(props) {
 				console.log(e);
 			}
 		});
-		if (Object.keys(slideData).length === 0) setStatus(["error"]);
 	};
 	return (
 		<div className="addstory">
@@ -177,6 +184,11 @@ export default function AddStory(props) {
 				{status[0] === "true" && <div className="loader"></div>}
 				{status[0] === "error" && (
 					<div className="error">Your form is incomplete.</div>
+				)}
+				{status[0] === "minbreach" && (
+					<div className="error">
+						Minimum 3 slides are required to submit the story.
+					</div>
 				)}
 				<button onClick={handleFormSubmit}>Post</button>
 			</div>

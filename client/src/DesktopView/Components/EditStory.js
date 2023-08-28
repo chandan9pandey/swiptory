@@ -33,28 +33,52 @@ export default function EditStory(props) {
 		const storyID = props.storyID;
 		console.log(storyID);
 		setStatus(["true"]);
+		if (Object.values(slideData).length < 3) {
+			setStatus(["minbreach"]);
+			return;
+		}
+		if (Object.keys(slideData).length === 0) {
+			setStatus(["error"]);
+			return;
+		}
 		Object.values(slideData).map(async (item, key) => {
 			item["storyID"] = storyID;
 			item["createdByUser"] = localStorage.getItem("user");
 			try {
 				const response = await axios.delete(
-					"http://localhost:5000/story",
+					`http://localhost:5000/story/${storyID}`,
 					{
 						headers: {
 							"content-type": "application/x-www-form-urlencoded",
 							token: localStorage.getItem("token"),
 						},
-					},
-					{
-						storyID: storyID,
 					}
 				);
 				console.log(response);
 			} catch (e) {
 				console.log(e);
 			}
+			try {
+				setTimeout(async () => {
+					const response = await axios.post(
+						"http://localhost:5000/story",
+						item,
+						{
+							headers: {
+								"content-type": "application/x-www-form-urlencoded",
+								token: localStorage.getItem("token"),
+							},
+						}
+					);
+					if (response.data.error) {
+						setStatus(["error"]);
+						console.log(response.data.error);
+					} else doClose(key);
+				}, 700 * key);
+			} catch (e) {
+				console.log(e);
+			}
 		});
-		if (Object.keys(slideData).length === 0) setStatus(["error"]);
 	};
 	return (
 		<div className="addstory">

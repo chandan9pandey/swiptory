@@ -12,19 +12,24 @@ export default function DesktopHomePage() {
 	const [isLogIn, setIsLogIn] = useState(false);
 	const [modal, setModal] = useState(false);
 	const [addStory, setAddStory] = useState(false);
+	const [showBookmarks, setShowBookmarks] = useState(false);
 	useEffect(() => {
 		setModal(isSignUp);
 	}, [isSignUp]);
 	useEffect(() => {
 		setModal(isLogIn);
 	}, [isLogIn]);
-
+	useEffect(() => {
+		console.log(showBookmarks);
+	}, [showBookmarks]);
 	return (
 		<div className="homepage">
 			<Navbar
 				setIsSignUp={setIsSignUp}
 				setIsLogIn={setIsLogIn}
 				setAddStory={setAddStory}
+				setShowBookmarks={setShowBookmarks}
+				bookmarks={showBookmarks}
 			/>
 			<ReactModal
 				isOpen={modal}
@@ -50,7 +55,7 @@ export default function DesktopHomePage() {
 			>
 				<AddStory closeStory={setAddStory} />
 			</ReactModal>
-			<Categories />
+			<Categories showBookmarks={showBookmarks} />
 		</div>
 	);
 }

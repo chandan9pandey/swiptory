@@ -3,9 +3,13 @@ import StoriesSection from "./StoriesSection";
 import axios from "axios";
 import "./Categories.css";
 
-export default function Categories() {
+export default function Categories(props) {
 	const [categories, setCategories] = useState([]);
 	const [selectedCategory, setSelectedCategory] = useState("all");
+	useEffect(() => {
+		if (props.showBookmarks == true) setSelectedCategory("bookmarks");
+		else setSelectedCategory("all");
+	}, [props.showBookmarks]);
 	useEffect(() => {
 		(async () => setCategories(await getCategories()))();
 	}, []);
@@ -30,6 +34,7 @@ export default function Categories() {
 			<StoriesSection
 				selectedCategory={selectedCategory}
 				categories={categories}
+				showBookmarks={props.showBookmarks}
 			/>
 		</div>
 	);

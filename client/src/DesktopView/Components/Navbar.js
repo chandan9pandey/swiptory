@@ -22,7 +22,14 @@ export default function Navbar(props) {
 					</div>
 				) : (
 					<div className="buttons">
-						<button onClick={() => nav("/bookmarks")}>Bookmarks</button>
+						<button
+							onClick={() => {
+								if (props.bookmarks == false) props.setShowBookmarks(true);
+								else props.setShowBookmarks(false);
+							}}
+						>
+							Bookmarks
+						</button>
 						<button
 							className="addStory"
 							onClick={() => props.setAddStory(true)}

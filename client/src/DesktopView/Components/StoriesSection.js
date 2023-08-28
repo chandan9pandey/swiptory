@@ -18,6 +18,7 @@ export default function StoriesSection(props) {
 	const [editStoryID, setEditStoryID] = useState("");
 	const [infinitySlide, setInfinitySlide] = useState(false);
 	const [toLogIn, setToLogIn] = useState(false);
+	const [bookmarkedStories, setBookmarkedStories] = useState([]);
 	const { isLoggedIn } = useContext(AppContext);
 	const location = useLocation();
 
@@ -47,8 +48,17 @@ export default function StoriesSection(props) {
 			let stories = await axios.get(`http://localhost:5000/user/story/${user}`);
 			stories = stories.data;
 			setUserStories(stories);
+			if (isLoggedIn) setBookmarkedStories(await getBookMarkedStories());
 		})();
 	}, [isLoggedIn]);
+	useEffect(() => {
+		if (editStory == true) setInfinitySlide(false);
+	}, [editStory]);
+	useEffect(() => {
+		if (isLoggedIn && props.showBookmarks) {
+			(async () => setBookmarkedStories(await getBookMarkedStories()))();
+		}
+	}, [props.showBookmarks]);
 	return (
 		<div className="storiessection">
 			{isLoggedIn &&
@@ -56,7 +66,9 @@ export default function StoriesSection(props) {
 					userStories,
 					setEditStory,
 					setEditStoryID,
-					setInfinitySlide
+					setInfinitySlide,
+					showMore,
+					setShowMore
 				)}
 			{props.selectedCategory == "all" &&
 				showAllStories(
@@ -68,9 +80,16 @@ export default function StoriesSection(props) {
 					setEditStoryID
 				)}
 			{props.selectedCategory !== "all" &&
+				props.selectedCategory !== "bookmarks" &&
 				showCategoryStories(
 					stories,
 					props.selectedCategory,
+					setInfinitySlide,
+					setEditStoryID
+				)}
+			{props.selectedCategory == "bookmarks" &&
+				showBookmarkedStories(
+					bookmarkedStories,
 					setInfinitySlide,
 					setEditStoryID
 				)}
@@ -206,6 +225,14 @@ function showCategoryStories(
 	setInfinitySlide,
 	setEditStoryID
 ) {
+	const uniqueStoryIDs = new Set();
+	const uniqueStories = [];
+	for (const obj of stories) {
+		if (!uniqueStoryIDs.has(obj.storyID)) {
+			uniqueStoryIDs.add(obj.storyID);
+			uniqueStories.push(obj);
+		}
+	}
 	return (
 		<div className="storybycategory">
 			<p>Top stories about {category}</p>
@@ -236,13 +263,29 @@ function showUserStories(
 	stories,
 	setEditStory,
 	setEditStoryID,
-	setInfinitySlide
+	setInfinitySlide,
+	showMore,
+	setShowMore
 ) {
+	const uniqueStoryIDs = new Set();
+	const uniqueStories = [];
+	if (!stories.error) {
+		for (const obj of stories) {
+			if (!uniqueStoryIDs.has(obj.storyID)) {
+				uniqueStoryIDs.add(obj.storyID);
+				uniqueStories.push(obj);
+			}
+		}
+	}
 	if (!stories.error)
 		return (
 			<div className="storybycategory">
 				<p>Your Stories</p>
-				<div className="categorystoriesShowMore">
+				<div
+					className={
+						showMore ? "categorystoriesShowMore" : "categorystoriesUSER"
+					}
+				>
 					{stories.map((story, key) => (
 						<div
 							className="story"
@@ -270,10 +313,10 @@ function showUserStories(
 						</div>
 					))}
 				</div>
-				{stories?.length > 6 && (
+				{uniqueStories?.length > 6 && (
 					<button
 						onClick={() => {
-							if (showMore == false) setShowMore(item[0]);
+							if (showMore == false) setShowMore(true);
 							else setShowMore(false);
 						}}
 					>
@@ -287,4 +330,77 @@ function showUserStories(
 			<p>Please create stories to view your stories.</p>
 		</div>
 	);
+}
+
+function showBookmarkedStories(
+	bookmarkedStories,
+	setInfinitySlide,
+	setEditStoryID
+) {
+	return (
+		<div className="storybycategory">
+			<p>Your Bookmarks</p>
+			<div className="categorystoriesShowMore">
+				{bookmarkedStories.map((story, key) => (
+					<div
+						className="story"
+						key={key}
+						onClick={() => {
+							setInfinitySlide(true);
+							setEditStoryID(story.storyID);
+						}}
+					>
+						<p>
+							{story.heading}
+							<br />
+							<span className="storydescription">{story.description}</span>
+						</p>
+						<img src={story.imageURL} />
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+async function getBookMarkedStories() {
+	const user = localStorage.getItem("user");
+	try {
+		let bookmarks = await axios.get(
+			`http://localhost:5000/user/bookmarks/${user}`,
+			{
+				headers: {
+					"content-type": "application/x-www-form-urlencoded",
+					token: localStorage.getItem("token"),
+				},
+			}
+		);
+		bookmarks = bookmarks.data;
+		let stories = [];
+
+		for (const item of bookmarks) {
+			const storyID = Number(item);
+			try {
+				const response = await axios.get(
+					`http://localhost:5000/story/${storyID}`
+				);
+				stories.push(...response.data);
+			} catch (e) {
+				console.log(e);
+			}
+		}
+		stories = stories.reverse();
+		const uniqueStoryIDs = new Set();
+		const uniqueStories = [];
+		for (const obj of stories) {
+			if (!uniqueStoryIDs.has(obj.storyID)) {
+				uniqueStoryIDs.add(obj.storyID);
+				uniqueStories.push(obj);
+			}
+		}
+
+		return uniqueStories;
+	} catch (e) {
+		console.log(e);
+	}
 }

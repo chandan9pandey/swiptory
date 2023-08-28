@@ -5,6 +5,7 @@ import ReactModal from "react-modal";
 import "./InfinitySlide.css";
 import axios from "axios";
 import SignUpForm from "./SignUpForm";
+import Slider from "./Slider";
 import leftSlide from "../Assets/leftSlide.png";
 import rightSlide from "../Assets/rightSlide.png";
 import saveSlide from "../Assets/saveSlide.png";
@@ -22,6 +23,7 @@ export default function InfinitySlide(props) {
 	const [intervalID, setIntervalID] = useState(-1);
 	const [bookmarkChange, setBookmarkChange] = useState("");
 	const [likeChange, setLikeChange] = useState(-1);
+	const [showSlider, setShowSlider] = useState(0);
 	const location = useLocation();
 	const notify = (message) =>
 		toast(message, {
@@ -32,8 +34,9 @@ export default function InfinitySlide(props) {
 		clearInterval(intervalID);
 	}, [iteration]);
 	useEffect(() => {
+		isBookmarked(displayStory[0]?.storyID, setBookmarkChange);
 		const interval = [];
-		if (displayStory.length > 1) {
+		if (displayStory?.length > 1) {
 			const timeouts = [];
 			const renderItemsWithDelay = () => {
 				setCurrentSlide({});
@@ -41,7 +44,7 @@ export default function InfinitySlide(props) {
 					const timeout = setTimeout(() => {
 						setCurrentSlide({ ...item });
 						if (index + 1 == displayStory.length) setLastSlide(index);
-					}, index * 4000);
+					}, index * 7000);
 					timeouts.push(timeout);
 				});
 			};
@@ -54,7 +57,7 @@ export default function InfinitySlide(props) {
 				setCurrentSlide(item);
 				const intervalID = setInterval(() => {
 					setIteration((prev) => prev + 1);
-				}, 4000);
+				}, 7000);
 				interval.push(intervalID);
 				setIntervalID(intervalID);
 				return () => clearInterval(interval[0]);
@@ -67,7 +70,7 @@ export default function InfinitySlide(props) {
 		if (lastSlide != 0) {
 			const intervalID = setInterval(() => {
 				setIteration((prev) => prev + 1);
-			}, 4000);
+			}, 7000);
 			interval.push(intervalID);
 			setIntervalID(intervalID);
 		}
@@ -88,23 +91,17 @@ export default function InfinitySlide(props) {
 	}, [likeChange]);
 	useEffect(() => {
 		isLiked(currentSlide.storyID, currentSlide.iteration, setLikeChange);
-		isBookmarked(currentSlide.storyID, setBookmarkChange);
+		setShowSlider(displayStory.length);
 	}, [currentSlide]);
 	return (
 		<div className="infinitySlides">
-			{intervalID !== -1 && (
-				<div className="slider">
-					<div className="sliding"></div>
-				</div>
-			)}
+			<Slider
+				slides={showSlider}
+				setSlides={setShowSlider}
+				iteration={currentSlide.iteration}
+			/>
 			{
-				<div
-					className="slide"
-					onClick={() => {
-						clearInterval(intervalID);
-						setIntervalID(-1);
-					}}
-				>
+				<div className="slide">
 					<p>
 						{currentSlide.heading}
 						<br />
@@ -228,7 +225,6 @@ async function setBookmark(storyID, setBookmarkChange) {
 				},
 			}
 		);
-		console.log(response);
 		if (response.data?.error == "Sign In First")
 			setBookmarkChange("Not logged in");
 		else if (response.data?.username == localStorage.getItem("user"))
