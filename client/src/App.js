@@ -7,7 +7,7 @@ import "./App.css";
 const DesktopHomePage = lazy(() =>
 	import("./DesktopView/Pages/DesktopHomePage")
 );
-const MobileHomePage = lazy(() => import("./MobileView/Pages/MobileHomPage"));
+const MobileHomePage = lazy(() => import("./MobileView/Pages/MobileHomePage"));
 const DesktopBookmarks = lazy(() =>
 	import("./DesktopView/Pages/DesktopBookmarks")
 );
@@ -16,8 +16,13 @@ const MobileBookmarks = lazy(() =>
 );
 
 function App() {
-	const isMobile = checkMobile();
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+	const [isLoading, setIsLoading] = useState(true);
+	const handleResize = () => {
+		setWindowWidth(window.innerWidth);
+	};
+	const [isMobile, setIsMobile] = useState(checkMobile(windowWidth));
 	useEffect(() => {
 		if (localStorage.getItem("token") == null) return setIsLoggedIn(false);
 		const check = async () => {
@@ -40,8 +45,32 @@ function App() {
 		};
 		check();
 	}, []);
+	useEffect(() => {
+		window.addEventListener("resize", handleResize);
+
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+	useEffect(() => {
+		setIsMobile(checkMobile(windowWidth));
+	}, [windowWidth]);
+	useEffect(() => {
+		(async () => {
+			const response = await axios.get("http://localhost:5000/");
+			if (response?.data) setIsLoading(false);
+			else setIsLoading(true);
+		})();
+	}, []);
 	return (
 		<AppContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+			{isLoading && (
+				<div className="initial-load">
+					<span className="Mloader"></span>
+					<span>
+						Please sit back and relax while we gather stories from around the
+						world !
+					</span>
+				</div>
+			)}
 			{isMobile ? (
 				<Suspense fallback={<div>Loading...</div>}>
 					<BrowserRouter>
@@ -65,12 +94,8 @@ function App() {
 	);
 }
 
-function checkMobile() {
-	if (
-		window.navigator.userAgent.includes("Windows") ||
-		window.navigator.userAgent.includes("Mac")
-	)
-		return false;
+function checkMobile(windowWidth) {
+	if (windowWidth >= 768) return false;
 	else return true;
 }
 

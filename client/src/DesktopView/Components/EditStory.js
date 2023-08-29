@@ -54,31 +54,35 @@ export default function EditStory(props) {
 						},
 					}
 				);
+				if (response.data?.Success) {
+					try {
+						setTimeout(async () => {
+							const response = await axios.post(
+								"https://swiptory.onrender.com/story",
+								item,
+								{
+									headers: {
+										"content-type": "application/x-www-form-urlencoded",
+										token: localStorage.getItem("token"),
+									},
+								}
+							);
+							if (response.data.error) {
+								setStatus(["error"]);
+								console.log(response.data.error);
+							} else doClose(key);
+						}, 700 * key);
+					} catch (e) {
+						setStatus(["error"]);
+						console.log(e);
+					}
+				}
 				console.log(response);
 			} catch (e) {
 				console.log(e);
 			}
-			try {
-				setTimeout(async () => {
-					const response = await axios.post(
-						"http://localhost:5000/story",
-						item,
-						{
-							headers: {
-								"content-type": "application/x-www-form-urlencoded",
-								token: localStorage.getItem("token"),
-							},
-						}
-					);
-					if (response.data.error) {
-						setStatus(["error"]);
-						console.log(response.data.error);
-					} else doClose(key);
-				}, 700 * key);
-			} catch (e) {
-				console.log(e);
-			}
 		});
+		if (Object.keys(slideData).length === 0) setStatus(["error"]);
 	};
 	return (
 		<div className="addstory">
@@ -198,6 +202,11 @@ export default function EditStory(props) {
 				{status[0] === "true" && <div className="loader"></div>}
 				{status[0] === "error" && (
 					<div className="error">Your form is incomplete.</div>
+				)}
+				{status[0] === "minbreach" && (
+					<div className="error">
+						NextMinimum 3 slides are required to submit the story.{" "}
+					</div>
 				)}
 				<button onClick={handleFormSubmit}>Post</button>
 			</div>

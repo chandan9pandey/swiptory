@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
+import "./MobileHomePage.css";
+import ReactModal from "react-modal";
 import Navbar from "../Components/Navbar";
 import Form from "../Components/Form";
 import AddStory from "../Components/AddStory";
 import Categories from "../Components/Categories";
-import "./DesktopHomePage.css";
-import ReactModal from "react-modal";
 ReactModal.setAppElement("#root");
 
-export default function DesktopHomePage() {
+export default function MobileHomePage() {
 	const [isSignUp, setIsSignUp] = useState(false);
 	const [isLogIn, setIsLogIn] = useState(false);
 	const [modal, setModal] = useState(false);
 	const [addStory, setAddStory] = useState(false);
+	const [yourStory, setYourStory] = useState(false);
 	const [showBookmarks, setShowBookmarks] = useState(false);
 	useEffect(() => {
 		setModal(isSignUp);
@@ -20,13 +21,15 @@ export default function DesktopHomePage() {
 		setModal(isLogIn);
 	}, [isLogIn]);
 	return (
-		<div className="homepage">
+		<div className="homePage">
 			<Navbar
 				setIsSignUp={setIsSignUp}
 				setIsLogIn={setIsLogIn}
 				setAddStory={setAddStory}
 				setShowBookmarks={setShowBookmarks}
 				bookmarks={showBookmarks}
+				yourStory={yourStory}
+				setYourStory={setYourStory}
 			/>
 			<ReactModal
 				isOpen={modal}
@@ -52,7 +55,7 @@ export default function DesktopHomePage() {
 			>
 				<AddStory closeStory={setAddStory} />
 			</ReactModal>
-			<Categories showBookmarks={showBookmarks} />
+			<Categories showBookmarks={showBookmarks} yourStory={yourStory} />
 		</div>
 	);
 }

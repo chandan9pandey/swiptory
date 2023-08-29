@@ -1,26 +1,31 @@
-@media (min-width: 768px) {
+@media (max-width: 767px) {
 	.storypart {
 		width: 100%;
 		height: max-content;
 	}
 
-	.categories {
+	.categoriescontainer {
 		width: 100%;
+		overflow: scroll;
+	}
+
+	.categories {
+		width: max-content;
 		display: flex;
 		flex-direction: row;
 	}
 
 	.category {
 		width: 8rem;
-		height: 8rem;
+		height: 5rem;
 		font-size: 1.2rem;
 		border: none;
-		border-radius: 36px;
+		border-radius: 24px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		background: #ff7373;
-		margin: 1rem;
+		margin: 0.8rem;
 		color: #fff;
 		position: relative;
 		cursor: pointer;
@@ -38,13 +43,14 @@
 		height: 100%;
 		filter: brightness(0.5);
 		border: none;
-		border-radius: 36px;
+		border-radius: 24px;
 		object-fit: cover;
 		z-index: 1;
 	}
 
 	.category p {
 		z-index: 3;
+		position: absolute;
 	}
 
 	.selected {

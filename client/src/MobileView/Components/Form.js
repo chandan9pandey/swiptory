@@ -37,6 +37,7 @@ export default function Form(props) {
 					},
 				}
 			);
+			console.log(response);
 			if (response.data.error) {
 				setResponse(
 					`${response.data.error}. Invalid Credentials! Please try again.`
@@ -102,7 +103,7 @@ function logIn(formData, setFormData, handleSubmit, response) {
 		<>
 			<form
 				action="http://localhost:5000/login"
-				method="POST"
+				method="post"
 				onChange={(e) =>
 					setFormData({ ...formData, [e.target.name]: e.target.value })
 				}

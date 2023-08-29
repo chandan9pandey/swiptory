@@ -70,7 +70,7 @@ export default function InfinitySlide(props) {
 		if (lastSlide != 0) {
 			const intervalID = setInterval(() => {
 				setIteration((prev) => prev + 1);
-			}, 3500);
+			}, 7000);
 			interval.push(intervalID);
 			setIntervalID(intervalID);
 		}
@@ -81,6 +81,7 @@ export default function InfinitySlide(props) {
 			props.setToLogIn(true);
 			props.setClose(false);
 		}
+		console.log(bookmarkChange);
 	}, [bookmarkChange]);
 	useEffect(() => {
 		if (likeChange == -404) {
@@ -106,27 +107,14 @@ export default function InfinitySlide(props) {
 						<br />
 						<span>{currentSlide.description}</span>
 					</p>
-					<img src={currentSlide.imageURL} />
+					<img
+						src={currentSlide.imageURL}
+						onClick={() => {
+							setIteration(iteration + 1);
+						}}
+					/>
 				</div>
 			}
-			<div className="leftslider">
-				<img
-					src={leftSlide}
-					alt="Left arrow button"
-					onClick={() => {
-						setIteration((prev) => prev - 1);
-					}}
-				/>
-			</div>
-			<div className="rightslider">
-				<img
-					src={rightSlide}
-					alt="Right arrow button"
-					onClick={() => {
-						setIteration((prev) => prev + 1);
-					}}
-				/>
-			</div>
 			{bookmarkChange == "Bookmarked" ? (
 				<div className="bookmark">
 					<img
@@ -191,7 +179,7 @@ export default function InfinitySlide(props) {
 									`${baseURL}/?infinitySlide=true&storyID=${currentSlide.storyID}`
 								);
 								notify(
-									"Story link copied to the clipboard. Share it with your friends !"
+									"Story copied to the clipboard. Share it with your friends!"
 								);
 							} else {
 								notify("Can't access your clipboard.");
@@ -223,6 +211,7 @@ async function fetchStoryByID(storyID) {
 }
 
 async function setBookmark(storyID, setBookmarkChange) {
+	console.log(storyID);
 	try {
 		const payload = {
 			username: localStorage.getItem("user"),

@@ -279,11 +279,7 @@ app.post("/bookmark", isAuthenticated, async (req, res) => {
 			{ $push: { bookmarks: storyID } },
 			{ new: true }
 		);
-		return res.json({
-			status: "SUCCESS",
-			message: "Bookmark added",
-			found: found,
-		});
+		res.json(found);
 	} catch (error) {
 		res.json({ error: "Something went wrong with story.", error: error });
 	}
@@ -299,9 +295,17 @@ app.get("/bookmark/:username", isAuthenticated, async (req, res) => {
 			bookmarks: { $in: storyIDArray },
 		});
 		if (check) {
-			return res.json({ status: "SUCCESS", message: "Bookmarks fetched" });
+			return res.json({
+				found: true,
+				status: "SUCCESS",
+				message: "Bookmarks fetched",
+			});
 		} else {
-			return res.json({ status: "FAIL", message: "Bookmarks not found" });
+			return res.json({
+				notFound: "Not Found",
+				status: "FAIL",
+				message: "Bookmarks not found",
+			});
 		}
 	} catch (error) {
 		res.json({
@@ -510,6 +514,13 @@ app.get(
 	},
 	[]
 );
+
+app.use("/", (req, res) => {
+	res.status(404);
+	res.json({
+		error: "URL NOT FOUND",
+	});
+});
 
 app.listen(process.env.PORT, () => {
 	mongoose
