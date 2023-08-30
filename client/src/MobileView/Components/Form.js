@@ -13,7 +13,7 @@ export default function Form(props) {
 		e.preventDefault();
 		if (props.isSignUp) {
 			const response = await axios.post(
-				"http://localhost:5000/register",
+				"https://swiptoryy.onrender.com/register",
 				formData,
 				{
 					headers: {
@@ -29,7 +29,7 @@ export default function Form(props) {
 		}
 		if (props.isLogIn) {
 			const response = await axios.post(
-				"http://localhost:5000/login",
+				"https://swiptoryy.onrender.com/login",
 				formData,
 				{
 					headers: {
@@ -63,7 +63,7 @@ function signUp(formData, setFormData, handleSubmit, response) {
 	return (
 		<>
 			<form
-				action="http://localhost:5000/register"
+				action="https://swiptoryy.onrender.com/register"
 				method="POST"
 				onChange={(e) =>
 					setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -102,7 +102,7 @@ function logIn(formData, setFormData, handleSubmit, response) {
 	return (
 		<>
 			<form
-				action="http://localhost:5000/login"
+				action="https://swiptoryy.onrender.com/login"
 				method="post"
 				onChange={(e) =>
 					setFormData({ ...formData, [e.target.name]: e.target.value })

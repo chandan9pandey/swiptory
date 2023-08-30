@@ -203,7 +203,9 @@ export default function InfinitySlide(props) {
 
 async function fetchStoryByID(storyID) {
 	try {
-		const response = await axios.get(`http://localhost:5000/story/${storyID}`);
+		const response = await axios.get(
+			`https://swiptoryy.onrender.com/story/${storyID}`
+		);
 		if (!response.data.Error) return response.data.reverse();
 	} catch (e) {
 		console.log(e);
@@ -221,7 +223,7 @@ async function setBookmark(storyID, setBookmarkChange) {
 			storyID: storyID,
 		};
 		const response = await axios.post(
-			"http://localhost:5000/bookmark",
+			"https://swiptoryy.onrender.com/bookmark",
 			payload,
 			{
 				headers: {
@@ -247,7 +249,7 @@ async function isBookmarked(storyID, setBookmarkChange) {
 	try {
 		const username = localStorage.getItem("user");
 		const response = await axios.get(
-			`http://localhost:5000/bookmark/${username}?storyID=${storyID}`,
+			`https://swiptoryy.onrender.com/bookmark/${username}?storyID=${storyID}`,
 			{
 				headers: {
 					"content-type": "application/x-www-form-urlencoded",
@@ -265,7 +267,7 @@ async function isBookmarked(storyID, setBookmarkChange) {
 async function removeBookmark(storyID, setBookmarkChange) {
 	try {
 		const response = await axios.put(
-			"http://localhost:5000/bookmark",
+			"https://swiptoryy.onrender.com/bookmark",
 			{
 				username: localStorage.getItem("user"),
 				storyID: storyID,
@@ -298,12 +300,16 @@ async function setLike(storyID, iteration, setLikeChange) {
 			username: localStorage.getItem("user"),
 			iteration,
 		};
-		const response = await axios.post("http://localhost:5000/like", payload, {
-			headers: {
-				"content-type": "application/x-www-form-urlencoded",
-				token: localStorage.getItem("token"),
-			},
-		});
+		const response = await axios.post(
+			"https://swiptoryy.onrender.com/like",
+			payload,
+			{
+				headers: {
+					"content-type": "application/x-www-form-urlencoded",
+					token: localStorage.getItem("token"),
+				},
+			}
+		);
 		if (response.data?.includes?.(localStorage.getItem("user")))
 			setLikeChange(response.data.length);
 		else if (response.data?.error == "Sign In First") {
@@ -320,7 +326,7 @@ async function isLiked(storyID, iteration, setLikeChange) {
 	try {
 		const user = localStorage.getItem("user");
 		const response = await axios.get(
-			`http://localhost:5000/like/${storyID}?iteration=${iteration}&username=${user}`,
+			`https://swiptoryy.onrender.com/like/${storyID}?iteration=${iteration}&username=${user}`,
 			{
 				headers: {
 					"content-type": "application/x-www-form-urlencoded",
@@ -338,7 +344,7 @@ async function isLiked(storyID, iteration, setLikeChange) {
 async function removeLike(storyID, iteration, setLikeChange) {
 	try {
 		const response = await axios.put(
-			"http://localhost:5000/like",
+			"https://swiptoryy.onrender.com/like",
 			{
 				storyID,
 				iteration,

@@ -46,7 +46,7 @@ export default function AddStory(props) {
 			try {
 				setTimeout(async () => {
 					const response = await axios.post(
-						"http://localhost:5000/story",
+						"https://swiptoryy.onrender.com/story",
 						item,
 						{
 							headers: {
@@ -187,7 +187,7 @@ export default function AddStory(props) {
 
 async function getStoryID() {
 	try {
-		let id = await axios.get("http://localhost:5000/storyid");
+		let id = await axios.get("https://swiptoryy.onrender.com/storyid");
 		return id.data.storyID;
 	} catch (e) {
 		console.log(e);

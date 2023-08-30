@@ -42,7 +42,9 @@ export default function Categories(props) {
 
 async function getCategories() {
 	try {
-		const response = await axios.get("http://localhost:5000/story/all");
+		const response = await axios.get(
+			"https://swiptoryy.onrender.com/story/all"
+		);
 		let categories = response.data
 			.reverse()
 			.map((i) => [i.category, i.imageURL]);
