@@ -43,7 +43,9 @@ export default function Categories(props) {
 async function getCategories() {
 	try {
 		const response = await axios.get("http://localhost:5000/story/all");
-		let categories = response.data.map((i) => [i.category, i.imageURL]);
+		let categories = response.data
+			.reverse()
+			.map((i) => [i.category, i.imageURL]);
 		categories = categories.filter(
 			(currentArray, index, self) =>
 				index ===

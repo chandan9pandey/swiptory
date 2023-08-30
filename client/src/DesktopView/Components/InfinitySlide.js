@@ -44,7 +44,7 @@ export default function InfinitySlide(props) {
 					const timeout = setTimeout(() => {
 						setCurrentSlide({ ...item });
 						if (index + 1 == displayStory.length) setLastSlide(index);
-					}, index * 7000);
+					}, index * 3000);
 					timeouts.push(timeout);
 				});
 			};
@@ -57,7 +57,7 @@ export default function InfinitySlide(props) {
 				setCurrentSlide(item);
 				const intervalID = setInterval(() => {
 					setIteration((prev) => prev + 1);
-				}, 7000);
+				}, 3000);
 				interval.push(intervalID);
 				setIntervalID(intervalID);
 				return () => clearInterval(interval[0]);
@@ -70,24 +70,12 @@ export default function InfinitySlide(props) {
 		if (lastSlide != 0) {
 			const intervalID = setInterval(() => {
 				setIteration((prev) => prev + 1);
-			}, 3500);
+			}, 3000);
 			interval.push(intervalID);
 			setIntervalID(intervalID);
 		}
 		return () => clearInterval(interval[0]);
 	}, [lastSlide]);
-	useEffect(() => {
-		if (bookmarkChange == "Not logged in") {
-			props.setToLogIn(true);
-			props.setClose(false);
-		}
-	}, [bookmarkChange]);
-	useEffect(() => {
-		if (likeChange == -404) {
-			props.setToLogIn(true);
-			props.setClose(false);
-		}
-	}, [likeChange]);
 	useEffect(() => {
 		isLiked(currentSlide.storyID, currentSlide.iteration, setLikeChange);
 		setShowSlider(displayStory.length);
@@ -223,6 +211,10 @@ async function fetchStoryByID(storyID) {
 }
 
 async function setBookmark(storyID, setBookmarkChange) {
+	const notify = (message) =>
+		toast(message, {
+			duration: 2500,
+		});
 	try {
 		const payload = {
 			username: localStorage.getItem("user"),
@@ -239,7 +231,7 @@ async function setBookmark(storyID, setBookmarkChange) {
 			}
 		);
 		if (response.data?.error == "Sign In First")
-			setBookmarkChange("Not logged in");
+			notify("Please Login to bookmark stories !");
 		else if (response.data?.username == localStorage.getItem("user"))
 			setBookmarkChange("Bookmarked");
 		else if (
@@ -285,15 +277,21 @@ async function removeBookmark(storyID, setBookmarkChange) {
 				},
 			}
 		);
-		if (response.data?.username == localStorage.getItem("user"))
+		if (response.data?.username == localStorage.getItem("user")) {
 			setBookmarkChange("");
-		else setBookmarkChange("Bookmarked");
+		} else {
+			setBookmarkChange("Bookmarked");
+		}
 	} catch (e) {
 		console.log(e);
 	}
 }
 
 async function setLike(storyID, iteration, setLikeChange) {
+	const notify = (message) =>
+		toast(message, {
+			duration: 2500,
+		});
 	try {
 		const payload = {
 			storyID,
@@ -308,9 +306,11 @@ async function setLike(storyID, iteration, setLikeChange) {
 		});
 		if (response.data?.includes?.(localStorage.getItem("user")))
 			setLikeChange(response.data.length);
-		else if (response.data?.error == "Sign In First") setLikeChange(-404);
-		else if (response.data?.error == "User has already liked the story.")
+		else if (response.data?.error == "Sign In First") {
+			notify("Please Login to like stories !");
+		} else if (response.data?.error == "User has already liked the story.") {
 			setLikeChange("Click me again.");
+		}
 	} catch (e) {
 		console.log(e);
 	}

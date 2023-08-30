@@ -136,7 +136,7 @@ async function getSelectedStories(category) {
 			response = await axios.get(
 				`http://localhost:5000/story/all?category=${category}`
 			);
-		return response.data;
+		return response.data.reverse();
 	} catch (e) {
 		console.log(e);
 	}

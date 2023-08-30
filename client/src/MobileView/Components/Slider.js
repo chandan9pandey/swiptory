@@ -15,7 +15,7 @@ export default function Slider(props) {
 						className={index == props.iteration ? "mainSlides" : "mainSlidesNA"}
 					></div>
 				</div>
-			))}
+			)).reverse()}
 		</div>
 	);
 }

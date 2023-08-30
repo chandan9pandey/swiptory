@@ -113,16 +113,6 @@ export default function StoriesSection(props) {
 					setToLogIn={setToLogIn}
 				/>
 			</ReactModal>
-			<ReactModal
-				isOpen={toLogIn}
-				onRequestClose={() => setToLogIn(false)}
-				className="modal"
-				overlayClassName={"modalOverlay"}
-			>
-				<Form>
-					isSignUp={false} isLogIn={true} setIsLogIn={setToLogIn}
-				</Form>
-			</ReactModal>
 		</div>
 	);
 }
@@ -136,7 +126,7 @@ async function getSelectedStories(category) {
 			response = await axios.get(
 				`http://localhost:5000/story/all?category=${category}`
 			);
-		return response.data;
+		return response.data.reverse();
 	} catch (e) {
 		console.log(e);
 	}
@@ -286,7 +276,7 @@ function showUserStories(
 						showMore ? "categorystoriesShowMore" : "categorystoriesUSER"
 					}
 				>
-					{stories.map((story, key) => (
+					{uniqueStories.map((story, key) => (
 						<div
 							className="story"
 							key={key}
@@ -307,7 +297,7 @@ function showUserStories(
 									setEditStoryID(story.storyID);
 								}}
 							>
-								<img src={Edit} alt="" />
+								<img src={Edit} alt="edit" />
 								<p>Edit</p>
 							</button>
 						</div>
