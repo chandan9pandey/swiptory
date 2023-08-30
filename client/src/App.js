@@ -29,7 +29,7 @@ function App() {
 			const token = localStorage.getItem("token");
 			try {
 				const response = await axios.post(
-					"http://localhost:5000/verify-token",
+					"https://swiptoryy.onrender.com/verify-token",
 					{},
 					{
 						headers: {
@@ -55,7 +55,7 @@ function App() {
 	}, [windowWidth]);
 	useEffect(() => {
 		(async () => {
-			const response = await axios.get("http://localhost:5000/");
+			const response = await axios.get("https://swiptoryy.onrender.com/");
 			if (response?.data) setIsLoading(false);
 			else setIsLoading(true);
 		})();
